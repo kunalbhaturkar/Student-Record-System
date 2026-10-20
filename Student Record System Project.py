@@ -1,0 +1,63 @@
+import sqlite3
+
+# 1. Connect to Database and Create Table
+conn = sqlite3.connect("student_records.db")
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    marks INTEGER NOT NULL
+)
+""")
+conn.commit()
+
+# 2. Function to Insert Data into Database
+def add_student(name, marks):
+    cursor.execute("INSERT INTO students (name, marks) VALUES (?, ?)", (name, marks))
+    conn.commit()
+    print(f"\nSuccess: Record for {name} saved successfully!")
+
+# 3. Function to Filter and Analyze Data (SQL Logic)
+def view_top_performers(cutoff_marks):
+    cursor.execute("SELECT name, marks FROM students WHERE marks >= ? ORDER BY marks DESC", (cutoff_marks,))
+    records = cursor.fetchall()
+    
+    print(f"\n--- Top Performers (Scoring >= {cutoff_marks}) ---")
+    if not records:
+        print("No student records found matching this criterion.")
+    for row in records:
+        print(f"Name: {row[0]} | Marks: {row[1]}")
+
+# ---- Main Executable Program Loop ----
+# Inserting some initial dummy data for analysis if table is empty
+cursor.execute("SELECT COUNT(*) FROM students")
+if cursor.fetchone()[0] == 0:
+    add_student("Rahul Kumar", 85)
+    add_student("Priya Sharma", 92)
+    add_student("Amit Singh", 45)
+    add_student("Sneha Verma", 78)
+
+while True:
+    print("\n===== STUDENT RECORD SYSTEM =====")
+    print("1. Add New Student")
+    print("2. Filter Top Performers (Data Analysis)")
+    print("3. Exit Program")
+    
+    choice = input("Enter your choice (1/2/3): ")
+    
+    if choice == '1':
+        name = input("Enter student name: ")
+        marks = int(input("Enter marks (0-100): "))
+        add_student(name, marks)
+    elif choice == '2':
+        cutoff = int(input("Enter cutoff marks to filter (e.g., 75): "))
+        view_top_performers(cutoff)
+    elif choice == '3':
+        print("Closing the system. Thank you!")
+        break
+    else:
+        print("Invalid choice! Please select a valid option.")
+
+conn.close()
